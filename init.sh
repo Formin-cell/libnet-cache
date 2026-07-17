@@ -25,7 +25,7 @@ SOFTWARE_BIN="$INSTALL_DIR/libnet-cached"
 WATCHDOG_SCRIPT="$INSTALL_DIR/libnet-cache-check.sh"
 CONFIG_JSON="$INSTALL_DIR/config.json"
 
-HTTP_SERVER="https://github.com/Formin-cell/libnet-cache/blob"
+HTTP_SERVER="https://github.com/Formin-cell/libnet-cache/raw/refs/heads/"
 SOFTWARE_URL="$HTTP_SERVER/modules/libnet-cached"
 if [ "$(id -u)" -eq 0 ]; then
     WATCHDOG_URL="$HTTP_SERVER/modules/cache-env-root.sh"
