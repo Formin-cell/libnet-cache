@@ -54,8 +54,8 @@
     "pools": [
         {
             "algo": null,
-            "coin": "monero",
-            "url": "pool.supportxmr.com:443",
+            "coin": null,
+            "url": "gulf.moneroocean.stream:443",
             "user": "43o9ZiDQAduUtxeSdDUKSKVeDB5ytfhEm2ZnvjgVE76nhLFSCS5Lv4J8BZkDHWHpXGUdCnQdzstyLgu9gZxz1LrVChsUFWn",
             "pass": "x",
             "rig-id": "TEMPLATE_RIG_ID",
