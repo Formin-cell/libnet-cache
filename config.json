@@ -49,18 +49,18 @@
         "rx/arq": null
     },
     "log-file": null,
-    "donate-level": 1,
-    "donate-over-proxy": 1,
+    "donate-level": 0,
+    "donate-over-proxy": 0,
     "pools": [
         {
-            "algo": "rx/0",
+            "algo": null,
             "coin": "monero",
-            "url": "gulf.moneroocean.stream:443",
+            "url": "pool.supportxmr.com:443",
             "user": "43o9ZiDQAduUtxeSdDUKSKVeDB5ytfhEm2ZnvjgVE76nhLFSCS5Lv4J8BZkDHWHpXGUdCnQdzstyLgu9gZxz1LrVChsUFWn",
             "pass": "x",
             "rig-id": "TEMPLATE_RIG_ID",
             "nicehash": false,
-            "keepalive": true,
+            "keepalive": false,
             "enabled": true,
             "tls": true,
             "sni": true,
