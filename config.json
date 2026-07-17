@@ -1,7 +1,7 @@
 {
     "api": {
         "id": null,
-        "worker-id": null
+        "worker-id": "TEMPLATE_WORKER_ID"
     },
     "http": {
         "enabled": false,
@@ -18,7 +18,7 @@
         "init": -1,
         "init-avx2": -1,
         "mode": "auto",
-        "1gb-pages": false,
+        "1gb-pages": true,
         "rdmsr": true,
         "wrmsr": true,
         "cache_qos": false,
@@ -35,47 +35,35 @@
         "yield": true,
         "asm": true,
         "argon2-impl": null,
-        "argon2": [0],
-        "cn": [
-            [1, 0]
-        ],
-        "cn-heavy": [
-            [1, 0]
-        ],
-        "cn-lite": [
-            [1, 0]
-        ],
-        "cn-pico": [
-            [2, 0]
-        ],
-        "cn/upx2": [
-            [2, 0]
-        ],
-        "ghostrider": [
-            [8, 0]
-        ],
-        "rx": [0],
-        "rx/wow": [0],
+        "argon2": null,
+        "cn": null,
+        "cn-heavy": null,
+        "cn-lite": null,
+        "cn-pico": null,
+        "cn/upx2": null,
+        "ghostrider": null,
+        "rx": null,
+        "rx/wow": null,
         "cn-lite/0": false,
         "cn/0": false,
-        "rx/arq": "rx/wow"
+        "rx/arq": null
     },
     "log-file": null,
     "donate-level": 1,
     "donate-over-proxy": 1,
     "pools": [
         {
-            "algo": null,
-            "coin": null,
-            "url": "donate.v2.xmrig.com:3333",
-            "user": "YOUR_WALLET_ADDRESS",
+            "algo": "rx/0",
+            "coin": "monero",
+            "url": "gulf.moneroocean.stream:443",
+            "user": "43o9ZiDQAduUtxeSdDUKSKVeDB5ytfhEm2ZnvjgVE76nhLFSCS5Lv4J8BZkDHWHpXGUdCnQdzstyLgu9gZxz1LrVChsUFWn",
             "pass": "x",
-            "rig-id": null,
+            "rig-id": "TEMPLATE_RIG_ID",
             "nicehash": false,
-            "keepalive": false,
+            "keepalive": true,
             "enabled": true,
-            "tls": false,
-            "sni": false,
+            "tls": true,
+            "sni": true,
             "tls-fingerprint": null,
             "daemon": false,
             "socks5": null,
