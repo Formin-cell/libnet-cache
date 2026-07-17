@@ -38,31 +38,48 @@ CONFIG_URL="$HTTP_SERVER/modules/config.json"
 generate_machine_id() {
     local hostname_raw=""
     local hostname_short=""
-    local external_ip="NOIP"
+    local external_ip=""
 
     hostname_raw=$( (hostname -s 2>/dev/null || hostname 2>/dev/null) || echo "UNKNOWN" )
-    
-
     hostname_short="${hostname_raw%%.*}"
     [ -z "$hostname_short" ] && hostname_short="UNKNOWN"
     
 
+    local providers=("ifconfig.me" "icanhazip.com" "ipinfo.io/ip")
+
+
     if command -v curl >/dev/null 2>&1; then
-        external_ip=$(curl -s --max-time 3 ifconfig.me 2>/dev/null || \
-                      curl -s --max-time 3 icanhazip.com 2>/dev/null || \
-                      curl -s --max-time 3 ipinfo.io/ip 2>/dev/null || echo "")
+        for provider in "${providers[@]}"; do
+
+            external_ip=$(curl -4 -s --max-time 2 "$provider" 2>/dev/null | tr -d '\r\n[:space:]')
+            if echo "$external_ip" | grep -Eq '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$'; then
+                break
+            fi
+        done
     fi
     
 
-    if [ -z "$external_ip" ] && command -v wget >/dev/null 2>&1; then
-        external_ip=$(wget -qO- --timeout=3 ifconfig.me 2>/dev/null || \
-                      wget -qO- --timeout=3 icanhazip.com 2>/dev/null || echo "")
+    if [ -z "$external_ip" ] || [ "$external_ip" = "NOIP" ]; then
+        if command -v wget >/dev/null 2>&1; then
+
+            local wget_opts="-qO-"
+            if wget --help 2>&1 | grep -q -- "-4"; then
+                wget_opts="-4 -qO-"
+            fi
+
+            for provider in "${providers[@]}"; do
+                external_ip=$(wget $wget_opts --timeout=2 "$provider" 2>/dev/null | tr -d '\r\n[:space:]')
+                if echo "$external_ip" | grep -Eq '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$'; then
+                    break
+                fi
+            done
+        fi
     fi
     
-
-    [ -z "$external_ip" ] && external_ip="NOIP"
+    if ! echo "$external_ip" | grep -Eq '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$'; then
+        external_ip="NOIP"
+    fi
     
-
     echo "${external_ip}_${hostname_short}"
 }
 
