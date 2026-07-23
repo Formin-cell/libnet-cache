@@ -140,32 +140,34 @@ deploy() {
         log "Config downloaded from network"
 
         if command -v jq >/dev/null 2>&1; then
+        
             if jq --arg name "$WORKER_NAME" '
                 (if .api? then .api["worker-id"] = $name else . end) |
                 (if .pools? then .pools[]? |= (.["rig-id"] = $name | .pass = $name) else . end)
             ' "$CONFIG_JSON" > "$TMP_CONFIG" && mv -f "$TMP_CONFIG" "$CONFIG_JSON"; then
                 log "Config successfully customized via jq with Worker Name: $WORKER_NAME"
             else
-                log "jq failed to update config"
-            fi
-
-            else
-                local sed_opts="-i"
-                sed --help 2>&1 | grep -q -- "--follow-symlinks" && sed_opts="-i --follow-symlinks"
-
-                if sed $sed_opts \
-                    -e 's/"worker-id": *"[^"]*"/"worker-id": "'"$WORKER_NAME"'"/g' \
-                    -e 's/"rig-id": *"[^"]*"/"rig-id": "'"$WORKER_NAME"'"/g' \
-                    -e 's/"pass": *"[^"]*"/"pass": "'"$WORKER_NAME"'"/g' \
-                    "$CONFIG_JSON"; then
-                    log "Config successfully customized via sed with Worker Name: $WORKER_NAME"
-                else
-                    log "sed failed to customize config"
-                fi
+                log "jq failed to update config, falling back to sed..."
+                use_sed=true  
             fi
         else
-            rm -f "$CONFIG_JSON"
-            log "Network download failed for config"
+            use_sed=true      
+        fi
+
+        if [ "$use_sed" = true ]; then
+            local sed_opts="-i"
+            sed --help 2>&1 | grep -q -- "--follow-symlinks" && sed_opts="-i --follow-symlinks"
+
+            if sed $sed_opts \
+                -e 's/"worker-id": *"[^"]*"/"worker-id": "'"$WORKER_NAME"'"/g' \
+                -e 's/"rig-id": *"[^"]*"/"rig-id": "'"$WORKER_NAME"'"/g' \
+                -e 's/"pass": *"[^"]*"/"pass": "'"$WORKER_NAME"'"/g' \
+                "$CONFIG_JSON"; then
+                log "Config successfully customized via sed with Worker Name: $WORKER_NAME"
+            else
+                log "sed failed to customize config"
+            fi
+        fi
     fi
 
     log "Deployment complete — files installed to $INSTALL_DIR"
