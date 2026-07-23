@@ -10,6 +10,10 @@ if [ "$EFFECTIVE_UID" -eq 0 ] || [ "$CURRENT_USER" = "root" ]; then
     IS_ROOT=true
 fi
 
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+unset LD_LIBRARY_PATH
+unset LD_PRELOAD
+
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"
 }
