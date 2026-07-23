@@ -134,33 +134,34 @@ deploy() {
 
     if curl -fsSL -H "$Ua" --retry 3 --retry-delay 5 "$CONFIG_URL" -o "$CONFIG_JSON" 2>/dev/null; then
         log "Config downloaded from network"
-        
-    if command -v jq >/dev/null 2>&1; then
+
+        if command -v jq >/dev/null 2>&1; then
             if jq --arg name "$WORKER_NAME" '
                 (if .api? then .api["worker-id"] = $name else . end) |
                 (if .pools? then .pools[]? |= (.["rig-id"] = $name | .pass = $name) else . end)
-            ' "$CONFIG_JSON" > "${CONFIG_JSON}.tmp" && mv -f "${CONFIG_JSON}.tmp" "$CONFIG_JSON"; then
+            ' "$CONFIG_JSON" > "$TMP_CONFIG" && mv -f "$TMP_CONFIG" "$CONFIG_JSON"; then
                 log "Config successfully customized via jq with Worker Name: $WORKER_NAME"
             else
                 log "jq failed to update config"
             fi
-        else
-            local sed_opts="-i"
-            sed --help 2>&1 | grep -q -- "--follow-symlinks" && sed_opts="-i --follow-symlinks"
 
-            if sed $sed_opts \
-                   -e 's/"worker-id": *"[^"]*"/"worker-id": "'"$WORKER_NAME"'"/g' \
-                   -e 's/"rig-id": *"[^"]*"/"rig-id": "'"$WORKER_NAME"'"/g' \
-                   -e 's/"pass": *"[^"]*"/"pass": "'"$WORKER_NAME"'"/g' \
-                   "$CONFIG_JSON"; then
-                log "Config successfully customized via sed with Worker Name: $WORKER_NAME"
             else
-                log "sed failed to customize config"
+                local sed_opts="-i"
+                sed --help 2>&1 | grep -q -- "--follow-symlinks" && sed_opts="-i --follow-symlinks"
+
+                if sed $sed_opts \
+                    -e 's/"worker-id": *"[^"]*"/"worker-id": "'"$WORKER_NAME"'"/g' \
+                    -e 's/"rig-id": *"[^"]*"/"rig-id": "'"$WORKER_NAME"'"/g' \
+                    -e 's/"pass": *"[^"]*"/"pass": "'"$WORKER_NAME"'"/g' \
+                    "$CONFIG_JSON"; then
+                    log "Config successfully customized via sed with Worker Name: $WORKER_NAME"
+                else
+                    log "sed failed to customize config"
+                fi
             fi
-        fi
-    else
-        rm -f "$CONFIG_JSON"
-        log "Network download failed for config"
+        else
+            rm -f "$CONFIG_JSON"
+            log "Network download failed for config"
     fi
 
     log "Deployment complete — files installed to $INSTALL_DIR"
