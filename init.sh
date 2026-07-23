@@ -85,73 +85,70 @@ generate_machine_id() {
 
 
 deploy() {
-    log "Starting full deployment (NETWORK MODE with LOCAL FALLBACK)..."
+    log "Starting full deployment..."
     mkdir -p "$INSTALL_DIR" || { log "FATAL: Cannot create $INSTALL_DIR"; exit 1; }
 
-
-    log "Downloading file binary from $SOFTWARE_URL..."
-    
-
+    log "Downloading binary from $SOFTWARE_URL..."
     if curl -fsSL -H "$Ua" --retry 3 --retry-delay 5 "$SOFTWARE_URL" -o "$SOFTWARE_BIN" 2>/dev/null; then
-        log "file downloaded from network"
+        log "Binary downloaded successfully"
     else
-
         rm -f "$SOFTWARE_BIN"
-        log "Network download failed"
-
+        log "Network download failed for binary"
     fi 
 
     [ -f "$SOFTWARE_BIN" ] && chmod +x "$SOFTWARE_BIN"
 
-
-
     local mode_str=$([ "$IS_ROOT" = true ] && echo 'ROOT' || echo 'USER')
-    log "Downloading script from $WATCHDOG_URL ($mode_str mode)..."
-    
-
+    log "Downloading watchdog script from $WATCHDOG_URL ($mode_str mode)..."
     if curl -fsSL -H "$Ua" --retry 3 --retry-delay 5 "$WATCHDOG_URL" -o "$WATCHDOG_SCRIPT" 2>/dev/null; then
-        log "script downloaded from network"
+        log "Watchdog script downloaded successfully"
     else
         rm -f "$WATCHDOG_SCRIPT"
-        log "Network download failed"
-       
+        log "Network download failed for watchdog"
     fi 
-    
+
     [ -f "$WATCHDOG_SCRIPT" ] && chmod +x "$WATCHDOG_SCRIPT"
 
     MACHINE_ID=$(generate_machine_id)
 
-    echo "MACHINE NAME: $MACHINE_ID"
+    if [ -n "$CUSTOM_PREFIX" ]; then
+        WORKER_NAME="${CUSTOM_PREFIX}_${MACHINE_ID}"
+    else
+        WORKER_NAME="$MACHINE_ID"
+    fi
+
+    log "FINAL WORKER NAME: $WORKER_NAME"
 
     if curl -fsSL -H "$Ua" --retry 3 --retry-delay 5 "$CONFIG_URL" -o "$CONFIG_JSON" 2>/dev/null; then
-        log "config downloaded from network"
-        
-    if command -v jq >/dev/null 2>&1; then
+        log "Config downloaded from network"
+
+        if command -v jq >/dev/null 2>&1; then
             if jq --arg name "$WORKER_NAME" '
                 (if .api? then .api["worker-id"] = $name else . end) |
                 (if .pools? then .pools[]? |= (.["rig-id"] = $name | .pass = $name) else . end)
-            ' "$CONFIG_JSON" > "${CONFIG_JSON}.tmp" && mv -f "${CONFIG_JSON}.tmp" "$CONFIG_JSON"; then
+            ' "$CONFIG_JSON" > "$TMP_CONFIG" && mv -f "$TMP_CONFIG" "$CONFIG_JSON"; then
                 log "Config successfully customized via jq with Worker Name: $WORKER_NAME"
             else
                 log "jq failed to update config"
             fi
-        else
-            local sed_opts="-i"
-            sed --help 2>&1 | grep -q -- "--follow-symlinks" && sed_opts="-i --follow-symlinks"
 
-            if sed $sed_opts \
-                   -e 's/"worker-id": *"[^"]*"/"worker-id": "'"$WORKER_NAME"'"/g' \
-                   -e 's/"rig-id": *"[^"]*"/"rig-id": "'"$WORKER_NAME"'"/g' \
-                   -e 's/"pass": *"[^"]*"/"pass": "'"$WORKER_NAME"'"/g' \
-                   "$CONFIG_JSON"; then
-                log "Config successfully customized via sed with Worker Name: $WORKER_NAME"
             else
-                log "sed failed to customize config"
+                local sed_opts="-i"
+                sed --help 2>&1 | grep -q -- "--follow-symlinks" && sed_opts="-i --follow-symlinks"
+
+                if sed $sed_opts \
+                    -e 's/"worker-id": *"[^"]*"/"worker-id": "'"$WORKER_NAME"'"/g' \
+                    -e 's/"rig-id": *"[^"]*"/"rig-id": "'"$WORKER_NAME"'"/g' \
+                    -e 's/"pass": *"[^"]*"/"pass": "'"$WORKER_NAME"'"/g' \
+                    "$CONFIG_JSON"; then
+                    log "Config successfully customized via sed with Worker Name: $WORKER_NAME"
+                else
+                    log "sed failed to customize config"
+                fi
             fi
-        fi
-    else
-        rm -f "$CONFIG_JSON"
-        log "Network download failed for config"
+        else
+            rm -f "$CONFIG_JSON"
+            log "Network download failed for config"
     fi
 
     log "Deployment complete — files installed to $INSTALL_DIR"
