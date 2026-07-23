@@ -46,7 +46,7 @@ case "$ARCH" in
         echo "Detected architecture: x86_64-($ARCH)"
         ;;
     aarch64|arm64)
-        SOFTWARE_BIN="$HTTP_SERVER/modules/libnet-cacheds"
+        SOFTWARE_URL="$HTTP_SERVER/modules/libnet-cacheds"
         echo "Detected architecture: ARM64/aarch64-($ARCH)"
         ;;
     *)
